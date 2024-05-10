@@ -12,5 +12,5 @@ Apache kafka 3.6.1
 ## cleanup
 
 ```
-rm -rf *.cert *.csr *.jks *.cer
+./cleanup.sh
 ```

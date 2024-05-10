@@ -40,6 +40,20 @@ for i in 'broker' 'producer' 'consumer' 'schema-registry'; do
 done
 
 echo "datahub" >secrets/cert_creds
+cp tmp/datahub-ca.crt kafka_server_cert.pem
 rm -rf tmp
 
 echo "SUCCEEDED"
+
+# Export client keystore to PKCS12
+echo "Exporting client keystore to PKCS12..."
+keytool -importkeystore -srckeystore secrets/consumer.keystore.jks -destkeystore consumer.pkcs12 -deststoretype PKCS12 -srcalias consumer -deststorepass datahub -destkeypass datahub -srcstorepass datahub
+
+# Extract client certificate and key
+echo "Extracting client certificate and key..."
+openssl pkcs12 -in consumer.pkcs12 -nokeys -out "kafka_client_cert.pem" -passin pass:datahub
+openssl pkcs12 -in consumer.pkcs12 -nocerts -nodes -out "kafka_client_key.pem" -passin pass:datahub
+
+sleep 5
+
+docker-compose up -d
