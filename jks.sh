@@ -45,3 +45,7 @@ echo "Creating truststore and importing the CA certificate..."
 keytool -importcert -alias $CA_ALIAS -file $CA_ALIAS.cer -keystore $TRUSTSTORE -storepass $PASSWORD -noprompt
 
 echo "JKS creation and CA setup completed."
+
+#### Client cert generation
+
+keytool -genkeypair -alias kafkaClient -keyalg RSA -keystore kafka.client.keystore.jks -storepass changeit -validity 365 -keysize 2048 -dname "CN=KafkaClient, OU=IT, O=YourCompany, L=City, S=State, C=US"
