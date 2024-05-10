@@ -1,51 +1,45 @@
 #!/bin/bash
 
-# Set variables
-CA_ALIAS="kafkaCA"
-CA_KEYSTORE="kafkaCA.keystore.jks"
-SERVER_ALIAS="kafkaServer"
-KEYSTORE="kafka.keystore.jks"
-TRUSTSTORE="kafka.truststore.jks"
-PASSWORD="Ch4ng3It"
-DNAME_CA="CN=kafkaCA, OU=IT, O=YourCompany, L=YourCity, ST=YourState, C=US"
-DNAME_SERVER="CN=kafkaServer, OU=IT, O=YourCompany, L=YourCity, ST=YourState, C=US"
-VALIDITY=365
-KEY_SIZE=2048
+set -o nounset \
+    -o errexit
 
-# Create CA keystore with the CA keypair
-echo "Creating CA keystore and key pair..."
-keytool -genkeypair -alias $CA_ALIAS -keyalg RSA -keysize $KEY_SIZE -keystore $CA_KEYSTORE -validity $VALIDITY -storepass $PASSWORD -keypass $PASSWORD -dname "$DNAME_CA"
+printf "Deleting previous (if any)..."
+rm -rf secrets
+mkdir secrets
+mkdir -p tmp
+echo " OK!"
+# Generate CA key
+printf "Creating CA..."
+openssl req -new -x509 -keyout tmp/datahub-ca.key -out tmp/datahub-ca.crt -days 365 -subj '/CN=ca.datahub/OU=test/O=datahub/L=paris/C=fr' -passin pass:datahub -passout pass:datahub >/dev/null 2>&1
 
-# Generate the CA certificate
-echo "Generating CA certificate..."
-keytool -export -alias $CA_ALIAS -keystore $CA_KEYSTORE -file $CA_ALIAS.cer -storepass $PASSWORD
+echo " OK!"
 
-# Create server keystore with the keypair
-echo "Creating server keystore and key pair..."
-keytool -genkeypair -alias $SERVER_ALIAS -keyalg RSA -keysize $KEY_SIZE -keystore $KEYSTORE -validity $VALIDITY -storepass $PASSWORD -keypass $PASSWORD -dname "$DNAME_SERVER"
+for i in 'broker' 'producer' 'consumer' 'schema-registry'; do
+    printf "Creating cert and keystore of $i..."
+    # Create keystores
+    keytool -genkey -noprompt \
+        -alias $i \
+        -dname "CN=$i, OU=test, O=datahub, L=paris, C=fr" \
+        -keystore secrets/$i.keystore.jks \
+        -keyalg RSA \
+        -storepass datahub \
+        -keypass datahub >/dev/null 2>&1
 
-# Create a certificate signing request (CSR) for the server
-echo "Creating CSR for the server..."
-keytool -certreq -alias $SERVER_ALIAS -keystore $KEYSTORE -file $SERVER_ALIAS.csr -storepass $PASSWORD
+    # Create CSR, sign the key and import back into keystore
+    keytool -keystore secrets/$i.keystore.jks -alias $i -certreq -file tmp/$i.csr -storepass datahub -keypass datahub >/dev/null 2>&1
 
-# Sign the server CSR with the CA key
-echo "Signing the server certificate with the CA..."
-keytool -gencert -alias $CA_ALIAS -keystore $CA_KEYSTORE -infile $SERVER_ALIAS.csr -outfile $SERVER_ALIAS.cer -validity $VALIDITY -storepass $PASSWORD
+    openssl x509 -req -CA tmp/datahub-ca.crt -CAkey tmp/datahub-ca.key -in tmp/$i.csr -out tmp/$i-ca-signed.crt -days 365 -CAcreateserial -passin pass:datahub >/dev/null 2>&1
 
-# Import the CA certificate to the server keystore
-echo "Importing CA certificate to server keystore..."
-keytool -importcert -alias $CA_ALIAS -keystore $KEYSTORE -file $CA_ALIAS.cer -storepass $PASSWORD -noprompt
+    keytool -keystore secrets/$i.keystore.jks -alias CARoot -import -noprompt -file tmp/datahub-ca.crt -storepass datahub -keypass datahub >/dev/null 2>&1
 
-# Import the signed server certificate to the server keystore
-echo "Importing signed server certificate to server keystore..."
-keytool -importcert -alias $SERVER_ALIAS -keystore $KEYSTORE -file $SERVER_ALIAS.cer -storepass $PASSWORD -noprompt
+    keytool -keystore secrets/$i.keystore.jks -alias $i -import -file tmp/$i-ca-signed.crt -storepass datahub -keypass datahub >/dev/null 2>&1
 
-# Create the truststore and import the CA certificate
-echo "Creating truststore and importing the CA certificate..."
-keytool -importcert -alias $CA_ALIAS -file $CA_ALIAS.cer -keystore $TRUSTSTORE -storepass $PASSWORD -noprompt
+    # Create truststore and import the CA cert.
+    keytool -keystore secrets/$i.truststore.jks -alias CARoot -import -noprompt -file tmp/datahub-ca.crt -storepass datahub -keypass datahub >/dev/null 2>&1
+    echo " OK!"
+done
 
-echo "JKS creation and CA setup completed."
+echo "datahub" >secrets/cert_creds
+rm -rf tmp
 
-#### Client cert generation
-
-keytool -genkeypair -alias kafkaClient -keyalg RSA -keystore kafka.client.keystore.jks -storepass changeit -validity 365 -keysize 2048 -dname "CN=KafkaClient, OU=IT, O=YourCompany, L=City, S=State, C=US"
+echo "SUCCEEDED"

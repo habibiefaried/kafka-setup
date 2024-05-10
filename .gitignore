@@ -2,3 +2,4 @@
 *.csr
 *.jks
 *.cer
+secrets/
