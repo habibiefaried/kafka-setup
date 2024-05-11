@@ -54,13 +54,13 @@ func main() {
 	// Producer or Consumer instance, see NewAdminClientFromProducer and
 	// NewAdminClientFromConsumer.
 	a, err := kafka.NewAdminClient(&kafka.ConfigMap{
-		"bootstrap.servers": bootstrapServers,
-		// "security.protocol":        "SSL",
-		// "ssl.ca.location":          "kafka_server_cert.pem",  // CA certificate file for SSL
-		// "ssl.certificate.location": "kafka_client_cert.pem",  // Client certificate
-		// "ssl.key.location":         "kafka_client_key.pem",   // Client private key
-		// "ssl.key.password":         "datahub",        // Private key password
-		// "enable.ssl.certificate.verification":    false,
+		"bootstrap.servers":                   bootstrapServers,
+		"security.protocol":                   "SSL",
+		"ssl.ca.location":                     "kafka_server_cert.pem", // CA certificate file for SSL
+		"ssl.certificate.location":            "kafka_client_cert.pem", // Client certificate
+		"ssl.key.location":                    "kafka_client_key.pem",  // Client private key
+		"ssl.key.password":                    "datahub",               // Private key password
+		"enable.ssl.certificate.verification": false,
 	})
 	if err != nil {
 		fmt.Printf("Failed to create Admin client: %s\n", err)
