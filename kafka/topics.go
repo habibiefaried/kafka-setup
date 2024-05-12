@@ -38,6 +38,7 @@ func (kf *Kafkalib) CreateTopic(topic string, partition int, replicationFactor i
 }
 
 func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
+	deliveryChan := make(chan kafka.Event)
 	client, err := schemaregistry.NewClient(schemaregistry.NewConfig(kf.SchemaRegistryServers))
 	if err != nil {
 		return fmt.Errorf("Failed to create schema registry client: %s\n", err)
@@ -48,11 +49,12 @@ func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
 		return fmt.Errorf("Failed to create serializer: %s\n", err)
 	}
 
-	deliveryChan := make(chan kafka.Event)
 	payload, err := ser.Serialize(topic, message)
 	if err != nil {
 		return fmt.Errorf("Failed to serialize payload: %s\n", err)
 	}
+
+	fmt.Println("A")
 
 	err = kf.kp.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},

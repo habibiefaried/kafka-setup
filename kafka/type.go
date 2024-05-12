@@ -18,6 +18,12 @@ type Kafkalib struct {
 	MaxTimeout                string
 }
 
+type User struct {
+	Name           string `json:"name"`
+	FavoriteNumber int64  `json:"favorite_number"`
+	FavoriteColor  string `json:"favorite_color"`
+}
+
 const AUTH_ADMIN = 1
 const AUTH_PRODUCER = 2
 const AUTH_CONSUMER = 3
