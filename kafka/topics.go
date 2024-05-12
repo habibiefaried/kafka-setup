@@ -57,7 +57,7 @@ func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
 	err = kf.kp.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          payload,
-		Headers:        []kafka.Header{{Key: "myTestHeader", Value: []byte("header values are binary")}},
+		Headers:        []kafka.Header{},
 	}, deliveryChan)
 	if err != nil {
 		return fmt.Errorf("Produce failed: %v\n", err)
@@ -77,4 +77,44 @@ func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
 	return nil
 }
 
-func (kf *Kafkalib) ConsumeMessage() {}
+func (kf *Kafkalib) ConsumeMessage(topic string) (*User, error) {
+	client, err := schemaregistry.NewClient(schemaregistry.NewConfig(kf.SchemaRegistryServers))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create schema registry client: %s\n", err)
+	}
+	deser, err := jsonschema.NewDeserializer(client, serde.ValueSerde, jsonschema.NewDeserializerConfig())
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create deserializer: %s\n", err)
+	}
+
+	err = kf.kc.SubscribeTopics([]string{topic}, nil)
+	run := true
+
+	for run {
+		ev := kf.kc.Poll(100)
+		if ev == nil {
+			continue
+		}
+
+		switch e := ev.(type) {
+		case *kafka.Message:
+			value := User{}
+			err := deser.DeserializeInto(*e.TopicPartition.Topic, e.Value, &value)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to deserialize payload: %s\n", err)
+			} else {
+				// fmt.Printf("Message on %s:\n%+v\n", e.TopicPartition, value)
+				return &value, nil
+			}
+		case kafka.Error:
+			return nil, fmt.Errorf("Error: %v: %v\n", e.Code(), e)
+		default:
+			fmt.Printf("Ignored %v\n", e)
+		}
+	}
+
+	fmt.Printf("Closing consumer\n")
+	kf.kc.Close()
+	return nil, nil
+}

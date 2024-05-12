@@ -14,6 +14,7 @@ func (kf *Kafkalib) AuthSSL(tipe int) error {
 		"ssl.key.location":                    kf.ClientPrivateCertLocation, // Client private key
 		"ssl.key.password":                    kf.KeyPassword,               // Private key password
 		"enable.ssl.certificate.verification": kf.EnableCertValidation,
+		"group.id":                            kf.ConsumerGroupName,
 	}
 
 	if tipe == AUTH_ADMIN {
@@ -29,11 +30,11 @@ func (kf *Kafkalib) AuthSSL(tipe int) error {
 		}
 		kf.kp = p
 	} else if tipe == AUTH_CONSUMER {
-		c, err := kafka.NewConsumer(c)
+		kc, err := kafka.NewConsumer(c)
 		if err != nil {
 			return err
 		}
-		kf.kc = c
+		kf.kc = kc
 	} else {
 		return fmt.Errorf("Type unknown, please check your parameter")
 	}

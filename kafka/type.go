@@ -17,6 +17,7 @@ type Kafkalib struct {
 	EnableCertValidation      bool
 	SecurityProtocol          string
 	MaxTimeout                string
+	ConsumerGroupName         string
 }
 
 type User struct {

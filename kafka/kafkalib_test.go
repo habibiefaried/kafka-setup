@@ -28,7 +28,7 @@ func TestCreateTopic(t *testing.T) {
 	defer kl.CloseConn()
 }
 
-func TestPublishMessage(t *testing.T) {
+func TestPublishConsumeMessage(t *testing.T) {
 	kl := &Kafkalib{
 		BootstrapServers:          "broker:9093",
 		SchemaRegistryServers:     "http://broker:8081",
@@ -39,6 +39,7 @@ func TestPublishMessage(t *testing.T) {
 		EnableCertValidation:      false,
 		SecurityProtocol:          "SSL",
 		MaxTimeout:                "60s",
+		ConsumerGroupName:         "group1",
 	}
 
 	err := kl.AuthSSL(AUTH_PRODUCER)
@@ -54,4 +55,16 @@ func TestPublishMessage(t *testing.T) {
 	if err != nil {
 		t.Error(nil)
 	}
+
+	err = kl.AuthSSL(AUTH_CONSUMER)
+	if err != nil {
+		t.Error(err)
+	}
+
+	m, err := kl.ConsumeMessage("test")
+	if err != nil {
+		t.Error(nil)
+	}
+
+	t.Logf("%+v", m)
 }
