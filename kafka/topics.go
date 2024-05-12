@@ -54,8 +54,6 @@ func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
 		return fmt.Errorf("Failed to serialize payload: %s\n", err)
 	}
 
-	fmt.Println("A")
-
 	err = kf.kp.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          payload,
@@ -78,3 +76,5 @@ func (kf *Kafkalib) PublishMessage(topic string, message interface{}) error {
 	close(deliveryChan)
 	return nil
 }
+
+func (kf *Kafkalib) ConsumeMessage() {}

@@ -7,6 +7,7 @@ import (
 type Kafkalib struct {
 	ka                        *kafka.AdminClient
 	kp                        *kafka.Producer
+	kc                        *kafka.Consumer
 	BootstrapServers          string
 	SchemaRegistryServers     string
 	CALocation                string

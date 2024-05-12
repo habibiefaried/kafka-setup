@@ -31,7 +31,7 @@ func TestCreateTopic(t *testing.T) {
 func TestPublishMessage(t *testing.T) {
 	kl := &Kafkalib{
 		BootstrapServers:          "broker:9093",
-		SchemaRegistryServers:     "broker:8081",
+		SchemaRegistryServers:     "http://broker:8081",
 		CALocation:                "../kafka_server_cert.pem",
 		ClientPublicCertLocation:  "../kafka_client_cert.pem",
 		ClientPrivateCertLocation: "../kafka_client_key.pem",

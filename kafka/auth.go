@@ -28,6 +28,12 @@ func (kf *Kafkalib) AuthSSL(tipe int) error {
 			return err
 		}
 		kf.kp = p
+	} else if tipe == AUTH_CONSUMER {
+		c, err := kafka.NewConsumer(c)
+		if err != nil {
+			return err
+		}
+		kf.kc = c
 	} else {
 		return fmt.Errorf("Type unknown, please check your parameter")
 	}
