@@ -15,6 +15,8 @@ func (kf *Kafkalib) AuthSSL(tipe int) error {
 		"ssl.key.password":                    kf.KeyPassword,               // Private key password
 		"enable.ssl.certificate.verification": kf.EnableCertValidation,
 		"group.id":                            kf.ConsumerGroupName,
+		"session.timeout.ms":                  6000,
+		"auto.offset.reset":                   "earliest",
 	}
 
 	if tipe == AUTH_ADMIN {
