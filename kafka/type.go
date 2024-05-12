@@ -6,7 +6,9 @@ import (
 
 type Kafkalib struct {
 	ka                        *kafka.AdminClient
+	kp                        *kafka.Producer
 	BootstrapServers          string
+	SchemaRegistryServers     string
 	CALocation                string
 	ClientPublicCertLocation  string
 	ClientPrivateCertLocation string
@@ -15,3 +17,7 @@ type Kafkalib struct {
 	SecurityProtocol          string
 	MaxTimeout                string
 }
+
+const AUTH_ADMIN = 1
+const AUTH_PRODUCER = 2
+const AUTH_CONSUMER = 3

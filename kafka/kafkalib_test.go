@@ -16,7 +16,7 @@ func TestCreateTopic(t *testing.T) {
 		SecurityProtocol:          "SSL",
 		MaxTimeout:                "60s",
 	}
-	err := kl.AuthSSL()
+	err := kl.AuthSSL(AUTH_ADMIN)
 	if err != nil {
 		t.Error(err)
 	}
