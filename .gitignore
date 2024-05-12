@@ -1,0 +1,7 @@
+*.cert
+*.csr
+*.jks
+*.cer
+secrets/
+*.pkcs12
+*.pem
