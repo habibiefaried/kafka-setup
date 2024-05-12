@@ -1,16 +1,30 @@
 # kafka-setup
-Kafka setup with JKS
+Kafka setup with JKS with golang testcases
 
 ## Requirements
 
-Apache kafka 3.6.1
+Install keytool
 
 ```
- apt install openjdk-19-jre-headless -y
+apt install openjdk-19-jre-headless -y
 ```
 
-## cleanup
+## Run
+
+1. To spin up cluster with ssl
 
 ```
-./cleanup.sh
+make build
+```
+
+2. To run tests
+
+```
+make test
+```
+
+3. To cleanup
+
+```
+make cleanup
 ```
